@@ -1,13 +1,13 @@
 "use client"
 
 import React from 'react'
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Area,
   AreaChart
@@ -16,6 +16,7 @@ import { useDashboard } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, FolderOpen, Users, Target } from 'lucide-react'
 import { useThemeStore } from '@/store/theme'
+import Link from 'next/link'
 
 // Count up animation component
 const CountUp = ({ end, duration = 2000 }: { end: number; duration?: number }) => {
@@ -28,9 +29,9 @@ const CountUp = ({ end, duration = 2000 }: { end: number; duration?: number }) =
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime
       const progress = Math.min((currentTime - startTime) / duration, 1)
-      
+
       setCount(Math.floor(progress * end))
-      
+
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate)
       }
@@ -109,7 +110,7 @@ export default function DashboardPage() {
     },
     {
       title: "Success Rate",
-      value: dashboardData.totalAttempts > 0 
+      value: dashboardData.totalAttempts > 0
         ? Math.round((dashboardData.totalCorrect / dashboardData.totalAttempts) * 100)
         : 0,
       description: "Correct answers percentage",
@@ -166,8 +167,8 @@ export default function DashboardPage() {
                 style={{ background: chartBg }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
-                <XAxis 
-                  dataKey="subject" 
+                <XAxis
+                  dataKey="subject"
                   angle={-45}
                   textAnchor="end"
                   height={80}
@@ -200,8 +201,8 @@ export default function DashboardPage() {
                 style={{ background: chartBg }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
-                <XAxis 
-                  dataKey="month" 
+                <XAxis
+                  dataKey="month"
                   angle={-45}
                   textAnchor="end"
                   height={80}
@@ -214,11 +215,11 @@ export default function DashboardPage() {
                   itemStyle={{ color: chartTooltipText }}
                   labelStyle={{ color: chartTooltipText }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="questions" 
-                  stroke={chartArea} 
-                  fill={chartArea} 
+                <Area
+                  type="monotone"
+                  dataKey="questions"
+                  stroke={chartArea}
+                  fill={chartArea}
                   fillOpacity={0.3}
                 />
               </AreaChart>
@@ -251,12 +252,12 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div 
+                <div
                   className="bg-green-600 h-2 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: `${dashboardData.totalAttempts > 0 
-                      ? (dashboardData.totalCorrect / dashboardData.totalAttempts) * 100 
-                      : 0}%` 
+                  style={{
+                    width: `${dashboardData.totalAttempts > 0
+                      ? (dashboardData.totalCorrect / dashboardData.totalAttempts) * 100
+                      : 0}%`
                   }}
                 />
               </div>
@@ -273,20 +274,20 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <a 
-                href="/admin/questions/add" 
+              <Link
+                href="/admin/questions/add"
                 className="block p-3 rounded-lg border hover:bg-accent transition-colors"
               >
                 <div className="font-medium">Add New Question</div>
                 <div className="text-sm text-muted-foreground">Create a new MCQ question</div>
-              </a>
-              <a 
-                href="/admin/subjects" 
+              </Link>
+              <Link
+                href="/admin/subjects"
                 className="block p-3 rounded-lg border hover:bg-accent transition-colors"
               >
                 <div className="font-medium">Manage Subjects</div>
                 <div className="text-sm text-muted-foreground">Add or edit subjects</div>
-              </a>
+              </Link>
             </div>
           </CardContent>
         </Card>

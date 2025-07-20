@@ -1,13 +1,15 @@
 import useSWR, { SWRConfiguration } from 'swr'
 import * as apiTypes from '@/types/api'
+import { useAuthStore } from '@/store/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 // Fetcher function for SWR
 const fetcher = async (url: string, options?: RequestInit) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
-  
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null
+
+  let response = await fetch(`${API_BASE_URL}${url}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -15,6 +17,59 @@ const fetcher = async (url: string, options?: RequestInit) => {
       ...options?.headers,
     },
   })
+
+  // If 401 and invalid/expired token, try refresh
+  if (response.status === 401) {
+    let errorMsg = '';
+    try {
+      errorMsg = await response.text();
+    } catch {}
+    if (errorMsg.includes('Invalid or expired token') && refreshToken) {
+      // Try refresh
+      const formData = new FormData();
+      formData.append('refresh_token', refreshToken);
+      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        // Update tokens in localStorage and auth store
+        localStorage.setItem('accessToken', refreshData.accessToken);
+        localStorage.setItem('refreshToken', refreshData.refreshToken);
+        if (refreshData.user) {
+          localStorage.setItem('user', JSON.stringify(refreshData.user));
+        }
+        // If zustand store is loaded, update it
+        try {
+          const { setTokens, setUser } = require('@/store/auth').useAuthStore.getState();
+          setTokens(refreshData.accessToken, refreshData.refreshToken);
+          if (refreshData.user) setUser(refreshData.user);
+        } catch {}
+        // Retry original request with new token
+        response = await fetch(`${API_BASE_URL}${url}`, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${refreshData.accessToken}`,
+            ...options?.headers,
+          },
+        });
+      } else {
+        // Refresh failed, logout
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+        }
+        try {
+          const { logout } = require('@/store/auth').useAuthStore.getState();
+          logout();
+        } catch {}
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+  }
 
   if (!response.ok) {
     const error = new Error('API request failed')
