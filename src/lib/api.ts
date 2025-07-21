@@ -17,6 +17,7 @@ const fetcher = async (url: string, options?: RequestInit) => {
       ...options?.headers,
     },
   })
+  console.log("resonose",response)
 
   // If 401 and invalid/expired token, try refresh
   if (response.status === 401) {
@@ -79,6 +80,77 @@ const fetcher = async (url: string, options?: RequestInit) => {
   }
 
   return response.json()
+}
+
+// Token-refreshing fetcher for file upload/download (returns raw Response)
+async function fetcherWithAuth(url: string, options: RequestInit = {}) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+
+  let response = await fetch(`${API_BASE_URL}${url}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (response.status === 401) {
+    let errorMsg = '';
+    try {
+      errorMsg = await response.text();
+    } catch {}
+    if (errorMsg.includes('Invalid or expired token') && refreshToken) {
+      // Try refresh
+      const formData = new FormData();
+      formData.append('refresh_token', refreshToken);
+      const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        localStorage.setItem('accessToken', refreshData.accessToken);
+        localStorage.setItem('refreshToken', refreshData.refreshToken);
+        if (refreshData.user) {
+          localStorage.setItem('user', JSON.stringify(refreshData.user));
+        }
+        try {
+          const { setTokens, setUser } = require('@/store/auth').useAuthStore.getState();
+          setTokens(refreshData.accessToken, refreshData.refreshToken);
+          if (refreshData.user) setUser(refreshData.user);
+        } catch {}
+        // Retry original request with new token
+        response = await fetch(`${API_BASE_URL}${url}`, {
+          ...options,
+          headers: {
+            ...(options.headers || {}),
+            Authorization: `Bearer ${refreshData.accessToken}`,
+          },
+        });
+      } else {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+        }
+        try {
+          const { logout } = require('@/store/auth').useAuthStore.getState();
+          logout();
+        } catch {}
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+  }
+
+  if (!response.ok) {
+    const error = new Error('API request failed');
+    error.message = await response.text();
+    (error as Error & { status?: number }).status = response.status;
+    throw error;
+  }
+
+  return response;
 }
 
 // Authentication API
@@ -153,13 +225,20 @@ export const adminAPI = {
     })
   },
 
+  deleteSubject: async (id: number): Promise<apiTypes.MessageResponse> => {
+    return fetcher(`/admin/subjects/${id}`, { method: 'DELETE' })
+  },
+
   // Questions
-  getQuestions: async (params?: apiTypes.PaginationParams): Promise<apiTypes.Question[]> => {
-    const searchParams = new URLSearchParams()
-    if (params?.skip) searchParams.append('skip', params.skip.toString())
-    if (params?.limit) searchParams.append('limit', params.limit.toString())
-    
-    return fetcher(`/admin/questions?${searchParams.toString()}`)
+  getQuestions: async (params?: apiTypes.PaginationParams & { search?: string; subjectIds?: number[] }): Promise<apiTypes.PaginatedAdminQuestionsResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.append('skip', params.skip.toString());
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.subjectIds && params.subjectIds.length > 0) {
+      searchParams.append('subjectIds', params.subjectIds.join(','));
+    }
+    return fetcher(`/admin/questions?${searchParams.toString()}`);
   },
 
   getQuestion: async (id: number): Promise<apiTypes.Question> => {
@@ -200,17 +279,14 @@ export const adminAPI = {
   },
 
   // Bulk operations
-  previewFile: async (file: File): Promise<apiTypes.PreviewFileResponse> => {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    return fetch(`${API_BASE_URL}/admin/preview-file`, {
+  previewFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetcherWithAuth('/admin/preview-file', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
       body: formData,
-    }).then(res => res.json())
+    });
+    return res.json();
   },
 
   bulkCreateQuestions: async (data: apiTypes.BulkCreateRequest): Promise<apiTypes.BulkCreateResponse> => {
@@ -221,11 +297,8 @@ export const adminAPI = {
   },
 
   downloadFileTemplate: async (type: 'csv' | 'excel'): Promise<Blob> => {
-    return fetch(`${API_BASE_URL}/admin/download-file-template?type=${type}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    }).then(res => res.blob())
+    const res = await fetcherWithAuth(`/admin/download-file-template?type=${type}`);
+    return res.blob();
   },
 }
 
@@ -289,16 +362,19 @@ export const useSubject = (id: number) => {
   )
 }
 
-export const useQuestions = (params?: apiTypes.PaginationParams) => {
-  const searchParams = new URLSearchParams()
-  if (params?.skip) searchParams.append('skip', params.skip.toString())
-  if (params?.limit) searchParams.append('limit', params.limit.toString())
-  
-  return useSWR<apiTypes.Question[]>(
+export const useQuestions = (params?: apiTypes.PaginationParams & { search?: string; subjectIds?: number[] }) => {
+  const searchParams = new URLSearchParams();
+  if (params?.skip) searchParams.append('skip', params.skip.toString());
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  if (params?.search) searchParams.append('search', params.search);
+  if (params?.subjectIds && params.subjectIds.length > 0) {
+    searchParams.append('subjectIds', params.subjectIds.join(','));
+  }
+  return useSWR<apiTypes.PaginatedAdminQuestionsResponse>(
     `/admin/questions?${searchParams.toString()}`,
     fetcher,
     useSWRConfig()
-  )
+  );
 }
 
 export const useQuestion = (id: number) => {

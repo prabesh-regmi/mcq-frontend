@@ -76,6 +76,7 @@ export interface BulkQuestion {
 
 export interface BulkCreateRequest {
   questions: BulkQuestion[]
+  newSubjects?: string[]
 }
 
 export interface BulkCreateResponse {
@@ -158,4 +159,29 @@ export interface PreviewFileResponse {
 // Generic Response Types
 export interface MessageResponse {
   message: string
+}
+
+// Admin API Types for /api/admin/questions
+export interface AdminChoice {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface AdminQuestion {
+  id: number;
+  text: string;
+  subjectId: number;
+  subjectName: string;
+  explanation: string;
+  choices: AdminChoice[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginatedAdminQuestionsResponse {
+  total: number;
+  skip: number;
+  limit: number;
+  data: AdminQuestion[];
 } 
