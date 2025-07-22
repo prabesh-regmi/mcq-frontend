@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setSidebarOpen(false)
       }
     }
-    
+
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -113,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="h-8 w-8"
             >
               {/* <Menu className="h-4 w-4" /> */}
-              <PanelLeftOpen className="size-4"  />
+              <PanelLeftOpen className="size-4" />
             </Button>
           </div>
         )}
@@ -121,7 +121,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Navigation */}
         <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname.startsWith(item.href)
             return (
               <div key={item.name} className="relative group">
                 <Link
@@ -143,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </span>
                   )}
                 </Link>
-                
+
                 {/* Tooltip for collapsed state */}
                 {sidebarCollapsed && (
                   <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
@@ -173,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <LogOut className="h-5 w-5 flex-shrink-0" />
               {!sidebarCollapsed && <span className="ml-3">Logout</span>}
             </Button>
-            
+
             {/* Tooltip for collapsed logout button */}
             {sidebarCollapsed && (
               <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
@@ -202,8 +202,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         {/* Mobile Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b">
-          <Link 
-            href="/admin/dashboard" 
+          <Link
+            href="/admin/dashboard"
             className="flex items-center space-x-2"
             onClick={() => setSidebarOpen(false)}
           >
@@ -361,7 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 relative">
           {children}
         </main>
       </div>

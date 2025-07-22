@@ -11,7 +11,6 @@ const QuestionViewPage = () => {
   const { data: question, isLoading: loadingQuestion } = useQuestion(questionId);
   const { data: subjects, isLoading: loadingSubjects } = useSubjects();
   const { data: dashboard, isLoading: loadingDashboard } = useDashboard();
-  console.log(question)
   if (loadingQuestion || loadingSubjects || loadingDashboard) return <div>Loading...</div>;
   if (!question) return <div>Question not found.</div>;
 

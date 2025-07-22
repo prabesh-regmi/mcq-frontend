@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -12,8 +12,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronLeft, ChevronRight, ArrowUpDown, Trash2, Search, Filter } from 'lucide-react';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Input } from '@/components/ui/input';
+import { DeleteConfirmationDialog } from './delete-confirmation-dialog';
+import Spinner from '@/components/ui/spinner';
 
 interface DataTableProps<T> {
   data: T[];
@@ -68,6 +69,15 @@ export function DataTable<T extends { id: any }>({
     );
   };
 
+  useEffect(() => {
+    if (!onSearch) return;
+    const timer = setTimeout(() => {
+      onSearch(searchTerm); // call your function after debounce
+    }, 500);
+
+    return () => clearTimeout(timer); // cleanup previous timeout
+  }, [searchTerm, onSearch]);
+
   const start = page * pageSize + 1;
   const end = Math.min((page + 1) * pageSize, totalCount);
 
@@ -75,7 +85,7 @@ export function DataTable<T extends { id: any }>({
     <div className="rounded-lg border">
       {/* Sticky controls + table header */}
       <div className="sticky top-16 z-30 bg-muted">
-        <div className="flex items-center justify-between p-4 pb-1">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center justify-between p-4 pb-1">
           <div className="flex items-center gap-4">
             {onSearch && (
               <div className="relative">
@@ -85,7 +95,6 @@ export function DataTable<T extends { id: any }>({
                   value={searchTerm}
                   onChange={e => {
                     setSearchTerm(e.target.value);
-                    onSearch(e.target.value);
                   }}
                   className="pl-10"
                 />
@@ -94,16 +103,16 @@ export function DataTable<T extends { id: any }>({
             {customFilter}
             {onDelete && selectedRows.length > 0 && (
               <Button
-                variant="destructive"
+                variant="outline"
+                className='border bg-transparent border-red-400 text-red-400 hover:bg-red-100 hover:text-red-400 dark:hover:text-red-600 dark:hover:border-red-600 dark:hover:bg-transparent'
                 size="sm"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedRows.length})
+                <Trash2 className="size-4" />
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <span className="text-sm text-muted-foreground">
               {start}-{end} of {totalCount}
             </span>
@@ -163,7 +172,7 @@ export function DataTable<T extends { id: any }>({
             {isFetching ? (
               <TableRow>
                 <TableCell colSpan={columns.length + 1} className="text-center py-8">
-                  Loading...
+                  <Spinner />
                 </TableCell>
               </TableRow>
             ) : data.length > 0 ? (
@@ -194,7 +203,7 @@ export function DataTable<T extends { id: any }>({
       </div>
 
       {onDelete && (
-        <ConfirmationDialog
+        <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
           onConfirm={() => {
@@ -202,8 +211,6 @@ export function DataTable<T extends { id: any }>({
             setSelectedRows([]);
             setIsDeleteDialogOpen(false);
           }}
-          title="Are you sure?"
-          description={`This will permanently delete ${selectedRows.length} item(s).`}
         />
       )}
     </div>

@@ -1,31 +1,35 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuestions, useSubjects, adminAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal, Filter } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { toast } from '@/hooks/use-toast';
-import { mutate } from 'swr';
-import { formatDate } from '@/lib/utils';
-import { AdminQuestion, PaginatedAdminQuestionsResponse, Subject } from '@/types/api';
+import { AdminQuestion, Subject } from '@/types/api';
 import Link from 'next/link';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+
 
 export default function QuestionsPage() {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]); // multi-select
   const router = useRouter();
+  const [deleteSubject, setDeleteSubject] = useState<AdminQuestion | null>(null)
 
   const { data: subjects } = useSubjects();
-  const { data: questionsData, error, isLoading } = useQuestions({
+  const { data: questionsData, error, isLoading, mutate: mutateQuestions } = useQuestions({
     skip: page * 50,
     limit: 50,
     search: searchTerm,
     subjectIds: selectedSubjectIds.length > 0 ? selectedSubjectIds : undefined,
   });
+  useEffect(() => {
+    mutateQuestions()
+  }, [])
 
   const handleDeleteQuestions = async (selectedQuestions: AdminQuestion[]) => {
     try {
@@ -34,7 +38,7 @@ export default function QuestionsPage() {
         title: 'Questions deleted',
         description: `${selectedQuestions.length} question(s) deleted successfully.`,
       });
-      mutate(['/admin/questions', page, searchTerm, selectedSubjectIds]);
+      mutateQuestions()
     } catch (error: any) {
       toast({
         title: 'Failed to delete questions',
@@ -65,7 +69,7 @@ export default function QuestionsPage() {
       header: 'Created',
       headClassName: 'w-[20%]',
       cellClassName: 'w-[20%]',
-      cell: (row: AdminQuestion) => <span>{new Date(row.createdAt).toLocaleDateString("en-US",{
+      cell: (row: AdminQuestion) => <span>{new Date(row.createdAt).toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric"
@@ -79,37 +83,32 @@ export default function QuestionsPage() {
       cell: (question: AdminQuestion) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className='border align-left'>
+            <Button variant="ghost" size="icon" className="border align-left">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuCheckboxItem asChild>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => router.push(`/admin/questions/view?questionId=${question.id}`)}>
-                View
-              </Button>
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem asChild>
-              <Button variant="ghost" className="w-full justify-start" onClick={() => router.push(`/admin/questions/edit?questionId=${question.id}`)}>
-                Edit
-              </Button>
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem asChild>
-              <Button variant="destructive" className="w-full justify-start" onClick={() => handleDeleteQuestions([question])}>
-                Delete
-              </Button>
-            </DropdownMenuCheckboxItem>
+            <DropdownMenuItem onClick={() => router.push(`/admin/questions/view?questionId=${question.id}`)}>
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/admin/questions/edit?questionId=${question.id}`)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setDeleteSubject(question)} className="text-red-600">
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-    },
+    }
+
   ];
 
   // Multi-select subject filter for DataTable control bar
   const subjectFilterDropdown = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="pl-10 pr-4 py-2 border rounded-md bg-background relative">
+        <Button variant="outline" className="pl-10 pr-4 py-2 border rounded-md bg-background hover:bg-background data-[state=open]:ring-1 hover:ring-1 ring-primary relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           {selectedSubjectIds.length === 0
             ? 'All Subjects'
@@ -164,11 +163,12 @@ export default function QuestionsPage() {
         setPage={setPage}
         onDelete={handleDeleteQuestions}
         onSearch={setSearchTerm}
-        onFilter={() => {}} // not used, filter handled by dropdown
+        onFilter={() => { }} // not used, filter handled by dropdown
         filterOptions={[]}
         customFilter={subjectFilterDropdown}
         pageSize={50}
       />
+      <ConfirmationDialog title='Confirm Delete' description='Are sure to delete this item?' isOpen={!!deleteSubject} onClose={() => setDeleteSubject(null)} onConfirm={() => deleteSubject && handleDeleteQuestions([deleteSubject])} />
     </div>
   );
 } 

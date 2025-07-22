@@ -21,6 +21,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { adminAPI, useSubjects } from '@/lib/api';
 import { questionSchema, QuestionFormData } from '@/lib/validations';
 import BulkUpload from '@/components/question/BulkUpload';
+import BackButton from '@/components/ui/back-button';
 
 const defaultChoice = { text: '', isCorrect: false };
 
@@ -78,7 +79,8 @@ const AddQuestionPage = () => {
   };
 
   return (
-    <div className="max-h-screen-dynamic flex items-center justify-center bg-background">
+    <div className="space-y-2">
+      <BackButton />
       <Tabs defaultValue="single" className="w-full">
         <TabsList>
           <TabsTrigger value="single">Single Create</TabsTrigger>

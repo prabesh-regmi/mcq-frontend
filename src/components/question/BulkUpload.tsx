@@ -289,7 +289,7 @@ const BulkUpload = () => {
                                                                 Confirm Delete
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                    </DropdownMenu>    
                                                 </td>
                                             </tr>
                                         ))}

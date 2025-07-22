@@ -1,6 +1,5 @@
 import useSWR, { SWRConfiguration } from 'swr'
 import * as apiTypes from '@/types/api'
-import { useAuthStore } from '@/store/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
@@ -17,14 +16,13 @@ const fetcher = async (url: string, options?: RequestInit) => {
       ...options?.headers,
     },
   })
-  console.log("resonose",response)
 
   // If 401 and invalid/expired token, try refresh
   if (response.status === 401) {
     let errorMsg = '';
     try {
       errorMsg = await response.text();
-    } catch {}
+    } catch { }
     if (errorMsg.includes('Invalid or expired token') && refreshToken) {
       // Try refresh
       const formData = new FormData();
@@ -46,7 +44,7 @@ const fetcher = async (url: string, options?: RequestInit) => {
           const { setTokens, setUser } = require('@/store/auth').useAuthStore.getState();
           setTokens(refreshData.accessToken, refreshData.refreshToken);
           if (refreshData.user) setUser(refreshData.user);
-        } catch {}
+        } catch { }
         // Retry original request with new token
         response = await fetch(`${API_BASE_URL}${url}`, {
           ...options,
@@ -66,7 +64,7 @@ const fetcher = async (url: string, options?: RequestInit) => {
         try {
           const { logout } = require('@/store/auth').useAuthStore.getState();
           logout();
-        } catch {}
+        } catch { }
         throw new Error('Session expired. Please login again.');
       }
     }
@@ -75,7 +73,7 @@ const fetcher = async (url: string, options?: RequestInit) => {
   if (!response.ok) {
     const error = new Error('API request failed')
     error.message = await response.text()
-    ;(error as Error & { status?: number }).status = response.status
+      ; (error as Error & { status?: number }).status = response.status
     throw error
   }
 
@@ -99,7 +97,7 @@ async function fetcherWithAuth(url: string, options: RequestInit = {}) {
     let errorMsg = '';
     try {
       errorMsg = await response.text();
-    } catch {}
+    } catch { }
     if (errorMsg.includes('Invalid or expired token') && refreshToken) {
       // Try refresh
       const formData = new FormData();
@@ -119,7 +117,7 @@ async function fetcherWithAuth(url: string, options: RequestInit = {}) {
           const { setTokens, setUser } = require('@/store/auth').useAuthStore.getState();
           setTokens(refreshData.accessToken, refreshData.refreshToken);
           if (refreshData.user) setUser(refreshData.user);
-        } catch {}
+        } catch { }
         // Retry original request with new token
         response = await fetch(`${API_BASE_URL}${url}`, {
           ...options,
@@ -137,7 +135,7 @@ async function fetcherWithAuth(url: string, options: RequestInit = {}) {
         try {
           const { logout } = require('@/store/auth').useAuthStore.getState();
           logout();
-        } catch {}
+        } catch { }
         throw new Error('Session expired. Please login again.');
       }
     }
@@ -172,7 +170,7 @@ export const authAPI = {
   refreshToken: async (refreshToken: string): Promise<apiTypes.LoginResponse> => {
     const formData = new FormData()
     formData.append('refresh_token', refreshToken)
-    
+
     return fetch(`${API_BASE_URL}/auth/refresh-token`, {
       method: 'POST',
       body: formData,
@@ -210,7 +208,7 @@ export const adminAPI = {
     const searchParams = new URLSearchParams()
     if (params?.skip) searchParams.append('skip', params.skip.toString())
     if (params?.limit) searchParams.append('limit', params.limit.toString())
-    
+
     return fetcher(`/admin/subjects?${searchParams.toString()}`)
   },
 
@@ -346,7 +344,7 @@ export const useSubjects = (params?: apiTypes.PaginationParams) => {
   const searchParams = new URLSearchParams()
   if (params?.skip) searchParams.append('skip', params.skip.toString())
   if (params?.limit) searchParams.append('limit', params.limit.toString())
-  
+
   return useSWR<apiTypes.Subject[]>(
     `/admin/subjects?${searchParams.toString()}`,
     fetcher,
