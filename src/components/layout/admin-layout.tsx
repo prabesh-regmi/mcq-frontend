@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -12,7 +12,10 @@ import {
   User,
   Settings,
   Moon,
-  Sun
+  Sun,
+  X,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
@@ -44,42 +47,183 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     logout()
   }
 
-  // Sidebar width
-  const sidebarWidth = sidebarCollapsed ? 56 : 256 // px
-  const sidebarWidthClass = sidebarCollapsed ? 'w-[56px]' : 'w-64'
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
+
+  // Close mobile sidebar on window resize to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(false)
+      }
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
-    <div className="relative min-h-screen-dynamic bg-background">
-      {/* Sidebar */}
+    <div className="relative min-h-[100svh] bg-background">
+      {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'fixed z-40 left-0 top-0 h-[100svh] flex flex-col bg-card border-r transition-all duration-300',
-          sidebarWidthClass,
-          sidebarCollapsed ? 'items-center' : 'items-stretch',
-          'group/sidebar'
+          'fixed z-40 left-0 top-0 h-[100svh] hidden lg:flex flex-col bg-card border-r transition-all duration-300',
+          sidebarCollapsed ? 'w-16' : 'w-64'
         )}
-        style={{ width: sidebarWidth }}
       >
-        {/* Sidebar header with logo and toggle */}
-        <div className={cn('flex items-center justify-between h-16 px-2 border-b', sidebarCollapsed ? 'px-2' : 'px-4')}
-        >
+        {/* Sidebar Header */}
+        <div className={cn(
+          'flex items-center h-16 border-b transition-all duration-300',
+          sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+        )}>
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-[var(--primary-foreground)]" />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            {!sidebarCollapsed && <span className="text-xl font-bold">MCQ Admin</span>}
+            {!sidebarCollapsed && (
+              <span className="text-xl font-bold transition-opacity duration-300">
+                MCQ Admin
+              </span>
+            )}
+          </Link>
+          {!sidebarCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(true)}
+              aria-label="Collapse sidebar"
+              className="size-8"
+            >
+              {/* <Menu className="h-4 w-4" /> */}
+              <PanelLeftClose className="size-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Sidebar Toggle Button (when collapsed) */}
+        {sidebarCollapsed && (
+          <div className="flex justify-center p-2 border-b">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label="Expand sidebar"
+              className="h-8 w-8"
+            >
+              {/* <Menu className="h-4 w-4" /> */}
+              <PanelLeftOpen className="size-4"  />
+            </Button>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <div key={item.name} className="relative group">
+                <Link
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 relative',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    sidebarCollapsed ? 'justify-center' : 'justify-start'
+                  )}
+                  tabIndex={0}
+                  aria-label={item.name}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {!sidebarCollapsed && (
+                    <span className="transition-opacity duration-300">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+                
+                {/* Tooltip for collapsed state */}
+                {sidebarCollapsed && (
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
+                    {item.name}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </nav>
+
+        {/* Logout Button */}
+        <div className={cn(
+          'mt-auto p-3 border-t transition-all duration-300',
+          sidebarCollapsed ? 'flex justify-center' : ''
+        )}>
+          <div className="relative group">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              aria-label="Logout"
+              className={cn(
+                'transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent',
+                sidebarCollapsed ? 'h-10 w-10 p-0' : 'w-full justify-start'
+              )}
+            >
+              <LogOut className="h-5 w-5 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="ml-3">Logout</span>}
+            </Button>
+            
+            {/* Tooltip for collapsed logout button */}
+            {sidebarCollapsed && (
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
+                Logout
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={cn(
+          'fixed z-50 left-0 top-0 h-[100svh] w-64 bg-card border-r flex flex-col transform transition-transform duration-300 lg:hidden',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {/* Mobile Sidebar Header */}
+        <div className="flex items-center justify-between h-16 px-4 border-b">
+          <Link 
+            href="/admin/dashboard" 
+            className="flex items-center space-x-2"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold">MCQ Admin</span>
           </Link>
           <Button
             variant="ghost"
             size="icon"
-            className={cn('ml-auto', 'hidden lg:flex')}
-            onClick={() => setSidebarCollapsed((v) => !v)}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+            className="h-8 w-8"
           >
-            <Menu className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
-        {/* Navigation (scrollable) */}
+
+        {/* Mobile Navigation */}
         <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = pathname === item.href
@@ -88,89 +232,84 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200 group relative',
+                  'flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200',
                   isActive
-                    ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
-                    : 'text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]',
-                  sidebarCollapsed ? 'justify-center' : 'justify-start'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
+                onClick={() => setSidebarOpen(false)}
                 tabIndex={0}
                 aria-label={item.name}
               >
                 <item.icon className="h-5 w-5" />
-                {!sidebarCollapsed && <span>{item.name}</span>}
-                {sidebarCollapsed && (
-                  <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-card px-2 py-1 text-xs shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 border">
-                    {item.name}
-                  </span>
-                )}
+                <span>{item.name}</span>
               </Link>
             )
           })}
         </nav>
-        {/* Sidebar bottom: Logout */}
-        <div className={cn('mt-auto p-2 border-t flex flex-col items-center', sidebarCollapsed ? 'px-2' : 'px-4')}
-        >
+
+        {/* Mobile Logout Button */}
+        <div className="mt-auto p-3 border-t">
           <Button
             variant="ghost"
-            className={cn('w-full justify-start text-muted-foreground hover:text-foreground', sidebarCollapsed && 'justify-center p-0')}
-            onClick={handleLogout}
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent"
+            onClick={() => {
+              handleLogout()
+              setSidebarOpen(false)
+            }}
             aria-label="Logout"
           >
             <LogOut className="mr-3 h-5 w-5" />
-            {!sidebarCollapsed && 'Logout'}
+            Logout
           </Button>
         </div>
       </aside>
 
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Main content area */}
+      {/* Main Content Area */}
       <div
         className={cn(
-          'flex flex-col min-h-screen-dynamic transition-all duration-300',
-          sidebarCollapsed ? 'lg:pl-[56px]' : 'lg:pl-64'
+          'flex flex-col min-h-[100svh] transition-all duration-300',
+          // Desktop sidebar spacing
+          sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64',
+          // No left padding on mobile
+          'pl-0'
         )}
-        style={{ paddingLeft: sidebarOpen ? 0 : undefined }}
       >
-        {/* Top navigation */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-x-4 border-b bg-[var(--background)] shadow-sm px-4">
-          {/* Sidebar toggle for mobile */}
+        {/* Top Navigation Header */}
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-x-4 border-b bg-background px-4 sm:px-6">
+          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden h-8 w-8"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4" />
           </Button>
-          {/* Page title (optional: breadcrumbs) */}
+
+          {/* Page Title */}
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-lg font-semibold text-foreground">
               {navigation.find(item => item.href === pathname)?.name || 'Admin'}
             </h1>
           </div>
-          {/* User avatar menu and theme toggler */}
+
+          {/* Right Side: User Menu and Theme Toggle */}
           <div className="flex items-center gap-x-2">
+            {/* User Avatar Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8 bg-[var(--primary)]">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.profileImage} alt={user?.fullName} />
-                    <AvatarFallback className="bg-[var(--primary)] text-[var(--primary-foreground)]">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                       {(user?.fullName && user.fullName.charAt(0).toUpperCase()) || 'A'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 z-50 bg-[var(--card)] text-[var(--card-foreground)]" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     {user?.fullName && (
@@ -191,7 +330,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
+                  <Link href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
@@ -203,88 +342,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
               aria-label="Toggle theme"
+              className="h-8 w-8"
             >
               {theme === 'light' ? (
-                <Moon className="h-5 w-5" />
+                <Moon className="h-4 w-4" />
               ) : (
-                <Sun className="h-5 w-5" />
+                <Sun className="h-4 w-4" />
               )}
             </Button>
           </div>
         </header>
-        {/* Page content */}
+
+        {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>
-      {/* Mobile sidebar overlay and drawer */}
-      {sidebarOpen && (
-        <aside className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="relative w-64 h-[100svh] bg-card border-r flex flex-col">
-            {/* Sidebar header with logo and close */}
-            <div className="flex items-center justify-between h-16 px-4 border-b">
-              <Link href="/admin/dashboard" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-[var(--primary-foreground)]" />
-                </div>
-                <span className="text-xl font-bold">MCQ Admin</span>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close sidebar"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-            </div>
-            {/* Navigation */}
-            <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200 group relative',
-                      isActive
-                        ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
-                        : 'text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]',
-                      'justify-start'
-                    )}
-                    tabIndex={0}
-                    aria-label={item.name}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-            {/* Sidebar bottom: Logout */}
-            <div className="mt-auto p-4 border-t">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-foreground"
-                onClick={handleLogout}
-                aria-label="Logout"
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Logout
-              </Button>
-            </div>
-          </div>
-          {/* Overlay click area */}
-          <div className="flex-1" onClick={() => setSidebarOpen(false)} />
-        </aside>
-      )}
     </div>
   )
-} 
+}
