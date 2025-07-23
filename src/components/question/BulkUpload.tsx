@@ -241,7 +241,7 @@ const BulkUpload = () => {
                         <div className="relative">
                             {/* Sticky Table Header */}
                             <div
-                                className="sticky top-16 z-30 bg-muted"
+                                className="sticky top-16 z-30 bg-card"
                             >
                                 <table className="w-full border text-sm table-fixed">
                                     <thead>
@@ -262,7 +262,7 @@ const BulkUpload = () => {
                                 <table className="w-full border text-sm table-fixed">
                                     <tbody>
                                         {preview?.questions?.map((q: any, idx: number) => (
-                                            <tr key={idx} className="border-b hover:bg-muted">
+                                            <tr key={idx} className="border-b hover:bg-muted/30">
                                                 <td className="p-4 w-12"><Checkbox checked={selectedRows.includes(idx)} onCheckedChange={checked => handleSelectRow(idx, checked as boolean)} /></td>
                                                 <td className="p-4 max-w-xs whitespace-pre-wrap w-1/4">{q.text}</td>
                                                 <td className="p-4 w-1/6">{q.subject}</td>

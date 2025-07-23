@@ -156,7 +156,7 @@ const QuestionViewPage = () => {
                     key={choice.id}
                     className={`p-4 rounded-lg border transition-all ${
                       choice.isCorrect
-                        ? "bg-muted border-border shadow-sm"
+                        ? "bg-muted/50 border-border shadow-sm"
                         : "bg-card border-border"
                     }`}
                   >
@@ -224,20 +224,20 @@ const QuestionViewPage = () => {
                 <CardDescription>Question performance metrics</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <span className="text-sm font-medium">Total Attempts</span>
                   <span className="text-lg font-bold">
                     {(question.answerTrack?.correct || 0) +
                       (question.answerTrack?.incorrect || 0)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <span className="text-sm font-medium">Correct</span>
                   <span className="text-lg font-bold">
                     {question.answerTrack?.correct}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <span className="text-sm font-medium">Incorrect</span>
                   <span className="text-lg font-bold">
                     {question.answerTrack?.incorrect}

@@ -84,7 +84,7 @@ export function DataTable<T extends { id: any }>({
   return (
     <div className="rounded-lg border">
       {/* Sticky controls + table header */}
-      <div className="sticky top-16 z-30 bg-muted">
+      <div className="sticky top-16 z-30 bg-card">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center justify-between p-4 pb-1">
           <div className="flex items-center gap-4">
             {onSearch && (
@@ -136,16 +136,16 @@ export function DataTable<T extends { id: any }>({
         </div>
         <div className="overflow-x-auto">
           <Table className="table-fixed">
-            <TableHeader className="bg-muted">
+            <TableHeader className="bg-card">
               <TableRow>
-                <TableHead className="bg-muted w-[5%] text-xs">
+                <TableHead className="bg-card w-[5%] text-xs">
                   <Checkbox
                     checked={selectedRows.length === data.length && data.length > 0}
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
                 {columns.map(col => (
-                  <TableHead key={String(col.accessorKey)} className={`py-4 bg-muted text-xs ${col.headClassName || ''}`}>
+                  <TableHead key={String(col.accessorKey)} className={`py-4 bg-card text-xs ${col.headClassName || ''}`}>
                     <div className="flex items-center gap-2">
                       {col.header}
                       {onSort && (
