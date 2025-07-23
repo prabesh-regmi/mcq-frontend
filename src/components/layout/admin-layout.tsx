@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
@@ -15,78 +15,93 @@ import {
   Sun,
   X,
   PanelLeftClose,
-  PanelLeftOpen
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/store/auth'
-import { useThemeStore } from '@/store/theme'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+  PanelLeftOpen,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
+import { useThemeStore } from "@/store/theme";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Questions', href: '/admin/questions', icon: BookOpen },
-  { name: 'Subjects', href: '/admin/subjects', icon: FolderOpen },
-]
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Questions", href: "/admin/questions", icon: BookOpen },
+  { name: "Subjects", href: "/admin/subjects", icon: FolderOpen },
+];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const pathname = usePathname()
-  const { user, logout } = useAuthStore()
-  const { theme, toggleTheme } = useThemeStore()
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
 
   const handleLogout = () => {
-    logout()
-  }
+    logout();
+  };
 
   // Close mobile sidebar on route change
   useEffect(() => {
-    setSidebarOpen(false)
-  }, [pathname])
+    setSidebarOpen(false);
+  }, [pathname]);
 
   // Close mobile sidebar on window resize to desktop
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
-        setSidebarOpen(false)
+        setSidebarOpen(false);
       }
-    }
+    };
 
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="relative min-h-[100svh] bg-background">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'fixed z-40 left-0 top-0 h-[100svh] hidden lg:flex flex-col bg-card border-r transition-all duration-300',
-          sidebarCollapsed ? 'w-16' : 'w-64'
+          "fixed z-40 left-0 top-0 h-[100svh] hidden lg:flex flex-col bg-card border-r transition-all duration-300",
+          sidebarCollapsed ? "w-16" : "w-64"
         )}
       >
         {/* Sidebar Header */}
-        <div className={cn(
-          'flex items-center h-16 border-b transition-all duration-300',
-          sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'
-        )}>
+        <div
+          className={cn(
+            "flex items-center h-16 border-b transition-all duration-300",
+            sidebarCollapsed ? "justify-center px-2" : "justify-between px-4"
+          )}
+        >
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            {!sidebarCollapsed && (
-              <span className="text-xl font-bold transition-opacity duration-300">
-                MCQ Admin
-              </span>
-            )}
+            <span
+              className={cn(
+                "text-xl font-bold transition-opacity duration-300 overflow-hidden whitespace-nowrap",
+                sidebarCollapsed ? "opacity-0 w-0" : "opacity-100"
+              )}
+            >
+              MCQ Admin
+            </span>
           </Link>
           {!sidebarCollapsed && (
             <Button
@@ -119,19 +134,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
-          {navigation.map((item) => {
-            const isActive = pathname.startsWith(item.href)
-            return (
-              <div key={item.name} className="relative group">
+        <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto overflow-x-hidden">
+          <TooltipProvider>
+            {navigation.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              const linkElement = (
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 relative',
+                    "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all duration-200 relative",
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                    sidebarCollapsed ? 'justify-center' : 'justify-start'
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    sidebarCollapsed ? "justify-center" : "justify-start"
                   )}
                   tabIndex={0}
                   aria-label={item.name}
@@ -143,44 +158,86 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </span>
                   )}
                 </Link>
+              );
 
-                {/* Tooltip for collapsed state */}
-                {sidebarCollapsed && (
-                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
-                    {item.name}
-                  </div>
-                )}
-              </div>
-            )
-          })}
+              return (
+                <div key={item.name}>
+                  {sidebarCollapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>{linkElement}</TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    linkElement
+                  )}
+                </div>
+              );
+            })}
+          </TooltipProvider>
         </nav>
 
         {/* Logout Button */}
-        <div className={cn(
-          'mt-auto p-3 border-t transition-all duration-300',
-          sidebarCollapsed ? 'flex justify-center' : ''
-        )}>
-          <div className="relative group">
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              aria-label="Logout"
-              className={cn(
-                'transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent',
-                sidebarCollapsed ? 'h-10 w-10 p-0' : 'w-full justify-start'
-              )}
-            >
-              <LogOut className="h-5 w-5 flex-shrink-0" />
-              {!sidebarCollapsed && <span className="ml-3">Logout</span>}
-            </Button>
 
-            {/* Tooltip for collapsed logout button */}
-            {sidebarCollapsed && (
-              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 border">
-                Logout
-              </div>
+        <div
+          className={cn(
+            "mt-auto p-3 border-t transition-all duration-300",
+            sidebarCollapsed ? "flex justify-center" : ""
+          )}
+        >
+          <TooltipProvider>
+            {sidebarCollapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    aria-label="Logout"
+                    className={cn(
+                      "transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent",
+                      sidebarCollapsed
+                        ? "h-10 w-10 p-0"
+                        : "w-full justify-start"
+                    )}
+                  >
+                    <LogOut className="h-5 w-5 flex-shrink-0" />
+                    <span
+                      className={cn(
+                        "ml-3 transition-opacity duration-300 overflow-hidden whitespace-nowrap",
+                        sidebarCollapsed ? "opacity-0 w-0 ml-0" : "opacity-100"
+                      )}
+                    >
+                      Logout
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Logout</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                aria-label="Logout"
+                className={cn(
+                  "transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-accent",
+                  sidebarCollapsed ? "h-10 w-10 p-0" : "w-full justify-start"
+                )}
+              >
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={cn(
+                    "ml-3 transition-opacity duration-300 overflow-hidden whitespace-nowrap",
+                    sidebarCollapsed ? "opacity-0 w-0 ml-0" : "opacity-100"
+                  )}
+                >
+                  Logout
+                </span>
+              </Button>
             )}
-          </div>
+          </TooltipProvider>
         </div>
       </aside>
 
@@ -196,8 +253,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          'fixed z-50 left-0 top-0 h-[100svh] w-64 bg-card border-r flex flex-col transform transition-transform duration-300 lg:hidden',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          "fixed z-50 left-0 top-0 h-[100svh] w-64 bg-card border-r flex flex-col transform transition-transform duration-300 lg:hidden",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Mobile Sidebar Header */}
@@ -226,16 +283,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile Navigation */}
         <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200',
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200",
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
                 onClick={() => setSidebarOpen(false)}
                 tabIndex={0}
@@ -244,7 +301,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <item.icon className="h-5 w-5" />
                 <span>{item.name}</span>
               </Link>
-            )
+            );
           })}
         </nav>
 
@@ -254,8 +311,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent"
             onClick={() => {
-              handleLogout()
-              setSidebarOpen(false)
+              handleLogout();
+              setSidebarOpen(false);
             }}
             aria-label="Logout"
           >
@@ -268,11 +325,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <div
         className={cn(
-          'flex flex-col min-h-[100svh] transition-all duration-300',
+          "flex flex-col min-h-[100svh] transition-all duration-300",
           // Desktop sidebar spacing
-          sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64',
+          sidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
           // No left padding on mobile
-          'pl-0'
+          "pl-0"
         )}
       >
         {/* Top Navigation Header */}
@@ -291,7 +348,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Page Title */}
           <div className="flex-1">
             <h1 className="text-lg font-semibold text-foreground">
-              {navigation.find(item => item.href === pathname)?.name || 'Admin'}
+              {navigation.find((item) => item.href === pathname)?.name ||
+                "Admin"}
             </h1>
           </div>
 
@@ -300,11 +358,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* User Avatar Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profileImage} alt={user?.fullName} />
+                    <AvatarImage
+                      src={user?.profileImage}
+                      alt={user?.fullName}
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                      {(user?.fullName && user.fullName.charAt(0).toUpperCase()) || 'A'}
+                      {(user?.fullName &&
+                        user.fullName.charAt(0).toUpperCase()) ||
+                        "A"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -336,7 +402,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
@@ -351,7 +420,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               aria-label="Toggle theme"
               className="h-8 w-8"
             >
-              {theme === 'light' ? (
+              {theme === "light" ? (
                 <Moon className="h-4 w-4" />
               ) : (
                 <Sun className="h-4 w-4" />
@@ -361,10 +430,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 relative">
-          {children}
-        </main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 relative">{children}</main>
       </div>
     </div>
-  )
+  );
 }

@@ -1,17 +1,23 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, BookOpen } from 'lucide-react'
-import { loginSchema, type LoginFormData } from '@/lib/validations'
-import { authAPI } from '@/lib/api'
-import { useAuthStore } from '@/store/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, BookOpen } from "lucide-react";
+import { loginSchema, type LoginFormData } from "@/lib/validations";
+import { authAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,50 +25,88 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
+import Spinner from "@/components/ui/spinner";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { setUser, setTokens } = useAuthStore()
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const router = useRouter();
+  const { setUser, setTokens } = useAuthStore();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
-  })
+  });
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuthentication = () => {
+      const accessToken = localStorage.getItem("accessToken");
+      const storedUser = localStorage.getItem("user");
+
+      if (accessToken && storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          // If user data exists in localStorage, redirect based on role
+          if (userData.role === "admin") {
+            router.push("/admin/dashboard");
+          } else {
+            router.push("/");
+          }
+          return;
+        } catch (error) {
+          // If parsing fails, clear invalid data
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+        }
+      }
+
+      // If no valid authentication found, show login form
+      setIsCheckingAuth(false);
+    };
+
+    checkAuthentication();
+  }, [router]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setIsLoading(true)
-      const response = await authAPI.login(data)
-      
+      setIsLoading(true);
+      const response = await authAPI.login(data);
+
       // Store tokens
-      setTokens(response.accessToken, response.refreshToken)
-      setUser(response.user)
+      setTokens(response.accessToken, response.refreshToken);
+      setUser(response.user);
       // Store in localStorage for API calls
-      localStorage.setItem('accessToken', response.accessToken)
-      localStorage.setItem('refreshToken', response.refreshToken)
-      localStorage.setItem('user', JSON.stringify(response.user))
-      
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
+      localStorage.setItem("user", JSON.stringify(response.user));
+
       // Redirect based on role
-      if (response.user.role === 'admin') {
-        router.push('/admin/dashboard')
+      if (response.user.role === "admin") {
+        router.push("/admin/dashboard");
       } else {
-        router.push('/')
+        router.push("/");
       }
     } catch (error) {
-      console.error('Login error:', error)
-      form.setError('root', {
-        type: 'manual',
-        message: 'Invalid email or password',
-      })
+      console.error("Login error:", error);
+      form.setError("root", {
+        type: "manual",
+        message: "Invalid email or password",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
+  };
+
+  // Show loading spinner while checking authentication
+  if (isCheckingAuth) {
+    return <Spinner />;
   }
 
   return (
@@ -99,7 +143,7 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
@@ -109,7 +153,7 @@ export default function LoginPage() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPassword ? 'text' : 'password'}
+                          type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
                           {...field}
                         />
@@ -139,12 +183,8 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
 
               <div className="text-center space-y-2">
@@ -155,7 +195,7 @@ export default function LoginPage() {
                   Forgot your password?
                 </Link>
                 <div className="text-sm text-muted-foreground">
-                  Don&apos;t have an account?{' '}
+                  Don&apos;t have an account?{" "}
                   <Link
                     href="/signup"
                     className="text-[var(--primary)] hover:underline"
@@ -169,5 +209,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}
