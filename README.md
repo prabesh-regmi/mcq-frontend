@@ -132,8 +132,8 @@ src/
 - **Questions** (`/admin/questions`) - Question management with filters
 - **Subjects** (`/admin/subjects`) - Subject management
 - **Add Question** (`/admin/questions/add`) - Create new questions
-- **Edit Question** (`/admin/questions/edit/[id]`) - Edit existing questions
-- **View Question** (`/admin/questions/view/[id]`) - Question details
+- **Edit Question** (`/admin/questions/edit?questionId=[id]`) - Edit existing questions
+- **View Question** (`/admin/questions/view?questionId=[id]`) - Question details
 
 ### Features by Page
 

@@ -107,3 +107,8 @@ body {
 #nprogress .spinner {
   display: none;
 }
+.custom-sonner-theme {
+  --normal-bg: var(--card);
+  --normal-text: var(--card-foreground);
+  --normal-border: var(--border);
+}

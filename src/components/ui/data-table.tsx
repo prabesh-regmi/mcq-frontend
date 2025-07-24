@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,13 +8,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronLeft, ChevronRight, ArrowUpDown, Trash2, Search, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { DeleteConfirmationDialog } from './delete-confirmation-dialog';
-import Spinner from '@/components/ui/spinner';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  Trash2,
+  Search,
+  Filter,
+  DownloadIcon,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
+import Spinner from "@/components/ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 interface DataTableProps<T> {
   data: T[];
@@ -33,8 +47,7 @@ interface DataTableProps<T> {
   onDelete?: (selectedItems: T[]) => void;
   onSort?: (sortKey: keyof T | null) => void;
   onSearch?: (searchTerm: string) => void;
-  onFilter?: (filterValue: string) => void;
-  filterOptions?: { label: string; value: string }[];
+  onDownload?: (selectedItems: T[], type: "csv" | "excel") => void;
   customFilter?: React.ReactNode;
 }
 
@@ -49,22 +62,21 @@ export function DataTable<T extends { id: any }>({
   onDelete,
   onSort,
   onSearch,
-  onFilter,
-  filterOptions,
+  onDownload,
   customFilter,
 }: DataTableProps<T>) {
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedRows(checked ? data : []);
   };
 
   const handleSelectRow = (row: T) => {
-    setSelectedRows(prev =>
-      prev.some(item => item.id === row.id)
-        ? prev.filter(item => item.id !== row.id)
+    setSelectedRows((prev) =>
+      prev.some((item) => item.id === row.id)
+        ? prev.filter((item) => item.id !== row.id)
         : [...prev, row]
     );
   };
@@ -85,7 +97,7 @@ export function DataTable<T extends { id: any }>({
     <div className="rounded-lg border">
       {/* Sticky controls + table header */}
       <div className="sticky top-16 z-30 bg-card">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center justify-between p-4 pb-1">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center justify-between p-3 ">
           <div className="flex items-center gap-4">
             {onSearch && (
               <div className="relative">
@@ -93,7 +105,7 @@ export function DataTable<T extends { id: any }>({
                 <Input
                   placeholder="Search..."
                   value={searchTerm}
-                  onChange={e => {
+                  onChange={(e) => {
                     setSearchTerm(e.target.value);
                   }}
                   className="pl-10"
@@ -101,10 +113,32 @@ export function DataTable<T extends { id: any }>({
               </div>
             )}
             {customFilter}
+            {onDownload && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline">
+                    <DownloadIcon className="w-4 h-4 mr-2" />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => onDownload(selectedRows, "csv")}
+                  >
+                    CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onDownload(selectedRows, "excel")}
+                  >
+                    Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {onDelete && selectedRows.length > 0 && (
               <Button
                 variant="outline"
-                className='border bg-transparent border-red-400 text-red-400 hover:bg-red-100 hover:text-red-400 dark:hover:text-red-600 dark:hover:border-red-600 dark:hover:bg-transparent'
+                className="border bg-transparent border-red-400 text-red-400 hover:bg-red-100 hover:text-red-400 dark:hover:text-red-600 dark:hover:border-red-600 dark:hover:bg-transparent"
                 size="sm"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
@@ -137,15 +171,23 @@ export function DataTable<T extends { id: any }>({
         <div className="overflow-x-auto">
           <Table className="table-fixed">
             <TableHeader className="bg-card">
-              <TableRow>
-                <TableHead className="bg-card w-[5%] text-xs">
+              <TableRow className="border-t">
+                <TableHead className="bg-card text-center border-r w-10 text-xs">
                   <Checkbox
-                    checked={selectedRows.length === data.length && data.length > 0}
+                    checked={
+                      selectedRows.length === data.length && data.length > 0
+                    }
                     onCheckedChange={handleSelectAll}
+                    className="mr-1.5"
                   />
                 </TableHead>
-                {columns.map(col => (
-                  <TableHead key={String(col.accessorKey)} className={`py-4 bg-card text-xs ${col.headClassName || ''}`}>
+                {columns.map((col) => (
+                  <TableHead
+                    key={String(col.accessorKey)}
+                    className={`py-4 bg-card text-xs ${
+                      col.headClassName || ""
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
                       {col.header}
                       {onSort && (
@@ -171,21 +213,28 @@ export function DataTable<T extends { id: any }>({
           <TableBody>
             {isFetching ? (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="text-center py-8">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  className="text-center py-8"
+                >
                   <Spinner />
                 </TableCell>
               </TableRow>
             ) : data.length > 0 ? (
-              data.map(row => (
+              data.map((row, idx) => (
                 <TableRow key={row.id}>
-                  <TableCell className="py-4 w-6">
+                  <TableCell className="py-4 border-r text-center w-10">
                     <Checkbox
-                      checked={selectedRows.some(item => item.id === row.id)}
+                      checked={selectedRows.some((item) => item.id === row.id)}
                       onCheckedChange={() => handleSelectRow(row)}
+                      className="mr-1.5"
                     />
                   </TableCell>
-                  {columns.map(col => (
-                    <TableCell key={String(col.accessorKey)} className={`py-4 text-xs ${col.cellClassName || ''}`}>
+                  {columns.map((col) => (
+                    <TableCell
+                      key={String(col.accessorKey)}
+                      className={`py-4 text-xs ${col.cellClassName || ""} `}
+                    >
                       {col.cell ? col.cell(row) : String(row[col.accessorKey])}
                     </TableCell>
                   ))}
@@ -193,7 +242,10 @@ export function DataTable<T extends { id: any }>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} className="text-center py-8">
+                <TableCell
+                  colSpan={columns.length + 1}
+                  className="text-center py-8"
+                >
                   No data
                 </TableCell>
               </TableRow>
@@ -215,4 +267,4 @@ export function DataTable<T extends { id: any }>({
       )}
     </div>
   );
-} 
+}

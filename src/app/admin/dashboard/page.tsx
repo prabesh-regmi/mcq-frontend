@@ -33,8 +33,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useThemeStore } from "@/store/theme";
 import { Progress } from "@/components/ui/progress";
+import { useTheme } from "next-themes";
 
 const CountUp = ({
   end,
@@ -74,7 +74,7 @@ const CountUp = ({
 
 export default function DashboardPage() {
   const { data: dashboardData, error, isLoading } = useDashboard();
-  const { theme } = useThemeStore();
+  const { theme } = useTheme();
 
   const chartGrid =
     theme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";

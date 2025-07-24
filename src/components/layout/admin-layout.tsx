@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
-import { useThemeStore } from "@/store/theme";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -35,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTheme } from "next-themes";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -51,7 +51,7 @@ export default function AdminLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -91,7 +91,11 @@ export default function AdminLayout({
           )}
         >
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div
+              className={`w-8 h-8 bg-primary rounded-lg flex items-center justify-center ${
+                sidebarCollapsed ? "ml-2" : ""
+              }`}
+            >
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
             <span
@@ -348,8 +352,8 @@ export default function AdminLayout({
           {/* Page Title */}
           <div className="flex-1">
             <h1 className="text-lg font-semibold text-foreground">
-              {navigation.find((item) => item.href === pathname)?.name ||
-                "Admin"}
+              {navigation.find((item) => pathname.startsWith(item.href))
+                ?.name || "Admin"}
             </h1>
           </div>
 
@@ -416,7 +420,9 @@ export default function AdminLayout({
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleTheme}
+              onClick={() => {
+                setTheme((prev) => (prev === "light" ? "dark" : "light"));
+              }}
               aria-label="Toggle theme"
               className="h-8 w-8"
             >

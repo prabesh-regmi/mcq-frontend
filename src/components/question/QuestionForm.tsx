@@ -111,7 +111,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const handleViewQuestion = () => {
     if (createdId) {
-      router.push(`/admin/questions/view/${createdId}`);
+      router.push(`/admin/questions/view?questionId=${createdId}`);
     }
   };
 
@@ -168,8 +168,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </div>
             <div className="space-y-2">
               {choices.map((choice, idx) => (
-                <>
-                  <div key={idx} className="flex items-center gap-2">
+                <React.Fragment key={idx}>
+                  <div className="flex items-center gap-2">
                     <Input
                       value={choice.text}
                       onChange={(e) => handleChoiceChange(idx, e.target.value)}
@@ -199,7 +199,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         {form.formState.errors.choices[idx].text.message}
                       </p>
                     )}
-                </>
+                </React.Fragment>
               ))}
             </div>
             {choices.length < 4 && (

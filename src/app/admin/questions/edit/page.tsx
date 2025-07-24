@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { useQuestion, useSubjects } from "@/lib/api";
+import { useQuestion } from "@/lib/api";
 import { QuestionFormData } from "@/lib/validations";
 import QuestionForm from "@/components/question/QuestionForm";
 import BackButton from "@/components/ui/back-button";

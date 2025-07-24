@@ -84,7 +84,9 @@ const QuestionViewPage = () => {
                 </CardDescription>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">#{questionId}</Badge>
-                  <Badge variant="outline">{question.subject.name}</Badge>
+                  <Badge variant="outline">
+                    {question.subject?.name ?? "N/A"}
+                  </Badge>
                 </div>
               </div>
               <div className="absolute top-0 right-0 flex items-center gap-2">
@@ -185,7 +187,9 @@ const QuestionViewPage = () => {
                         </span>
                       </div>
                       {choice.isCorrect && (
-                        <Badge variant="default" className="text-xs">Correct Answer</Badge>
+                        <Badge variant="default" className="text-xs">
+                          Correct Answer
+                        </Badge>
                       )}
                     </div>
                   </div>

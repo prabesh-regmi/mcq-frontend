@@ -1,21 +1,23 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { SWRConfig } from 'swr'
-import { ThemeProvider } from '@/components/providers/theme-provider'
-import NProgressClient from '@/components/providers/NProgressClient'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { SWRConfig } from "swr";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import NProgressClient from "@/components/providers/NProgressClient";
+import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "MCQ Admin Dashboard",
-  description: "A comprehensive admin dashboard for managing multiple choice questions",
-}
+  description:
+    "A comprehensive admin dashboard for managing multiple choice questions",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -36,8 +38,9 @@ export default function RootLayout({
           >
             {children}
           </SWRConfig>
+          <Toaster position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

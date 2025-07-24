@@ -66,7 +66,7 @@ export interface Question {
   text: string;
   subjectId: number;
   explanation: string;
-  subject: {
+  subject?: {
     name: string;
   };
   choices: Choice[];
