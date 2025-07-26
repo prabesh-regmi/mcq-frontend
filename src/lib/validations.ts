@@ -89,6 +89,11 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const updateProfileSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  phoneNumber: z.string().min(5, "Phone number is too short"),
+});
+
 // Export types
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
@@ -99,3 +104,4 @@ export type ChoiceFormData = z.infer<typeof choiceSchema>;
 export type SubjectFormData = z.infer<typeof subjectSchema>;
 export type ProfileFormData = z.infer<typeof profileSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

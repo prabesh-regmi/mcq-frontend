@@ -10,7 +10,6 @@ import {
   Menu,
   LogOut,
   User,
-  Settings,
   Moon,
   Sun,
   X,
@@ -35,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -92,11 +92,11 @@ export default function AdminLayout({
         >
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
             <div
-              className={`w-8 h-8 bg-primary rounded-lg flex items-center justify-center ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 sidebarCollapsed ? "ml-2" : ""
               }`}
             >
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+              <Image src="/logo.png" alt="EQ Admin" width={32} height={32} className="size-8 text-primary-foreground" />
             </div>
             <span
               className={cn(
@@ -104,7 +104,7 @@ export default function AdminLayout({
                 sidebarCollapsed ? "opacity-0 w-0" : "opacity-100"
               )}
             >
-              MCQ Admin
+              EQ Admin
             </span>
           </Link>
           {!sidebarCollapsed && (
@@ -397,12 +397,6 @@ export default function AdminLayout({
                   <Link href="/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

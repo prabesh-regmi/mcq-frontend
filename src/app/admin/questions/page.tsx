@@ -150,7 +150,7 @@ export default function QuestionsPage() {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setDeleteSubject(question)}
-              className="text-red-600"
+              className="text-destructive"
             >
               Delete
             </DropdownMenuItem>

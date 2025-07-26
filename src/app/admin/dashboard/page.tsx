@@ -7,10 +7,6 @@ import {
   FolderOpen,
   Users,
   Target,
-  Plus,
-  Settings,
-  Grid,
-  Command,
   Briefcase,
   PlusCircle,
 } from "lucide-react";
@@ -162,7 +158,11 @@ export default function DashboardPage() {
   );
 
   const totalCorrectAttemptPercentage =
-    dashboardData.totalAttempts > 0 ? (1 / 2) * 100 : 0;
+    dashboardData.totalAttempts > 0
+      ? Math.round(
+          (dashboardData.totalCorrect / dashboardData.totalAttempts) * 100
+        )
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -284,7 +284,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Incorrect Answers</span>
-                <span className="text-sm text-red-600">
+                <span className="text-sm text-destructive">
                   {dashboardData.totalIncorrect.toLocaleString()}
                 </span>
               </div>

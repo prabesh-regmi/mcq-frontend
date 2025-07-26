@@ -133,7 +133,7 @@ export interface PublicQuestion {
   choices: {
     id: number;
     text: string;
-    is_correct: boolean;
+    isCorrect: boolean;
   }[];
 }
 

@@ -202,6 +202,16 @@ export const authAPI = {
     return fetcher("/auth/send-reset-password", { method: "POST" });
   },
 
+  changePassword: async (data: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<{ msg: string }> => {
+    return fetcher("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
   resetPassword: async (
     token: string,
     newPassword: string
@@ -212,6 +222,21 @@ export const authAPI = {
         method: "POST",
       }
     );
+  },
+
+  getProfile: async (): Promise<apiTypes.User> => {
+    return fetcher("/auth/profile");
+  },
+
+  updateProfile: async (
+    data: Partial<
+      Pick<apiTypes.User, "fullName" | "phoneNumber" | "profileImage">
+    >
+  ): Promise<apiTypes.User> => {
+    return fetcher("/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
   },
 };
 
@@ -373,7 +398,7 @@ export const publicAPI = {
   getQuestions: async (
     data: apiTypes.GetQuestionsRequest
   ): Promise<apiTypes.PublicQuestion[]> => {
-    return fetcher("/questions", {
+    return fetcher("/question", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -383,7 +408,7 @@ export const publicAPI = {
     questionId: number,
     data: apiTypes.SubmitAnswerRequest
   ): Promise<apiTypes.SubmitAnswerResponse> => {
-    return fetcher(`/questions/${questionId}/answer`, {
+    return fetcher(`/question/${questionId}/answer`, {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -392,7 +417,7 @@ export const publicAPI = {
   getQuestionExplanation: async (
     questionId: number
   ): Promise<apiTypes.QuestionExplanationResponse> => {
-    return fetcher(`/questions/${questionId}/explanation`);
+    return fetcher(`/question/${questionId}/explanation`);
   },
 };
 
@@ -463,7 +488,6 @@ export const useQuestion = (id: number) => {
   );
 };
 
-// Public Hooks
 export const usePublicSubjects = () => {
   return useSWR<apiTypes.Subject[]>("/subjects", fetcher, useSWRConfig());
 };
