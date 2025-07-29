@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import Logo from "../logo";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -96,7 +97,7 @@ export default function AdminLayout({
                 sidebarCollapsed ? "ml-2" : ""
               }`}
             >
-              <Image src="/logo.png" alt="EQ Admin" width={32} height={32} className="size-8 text-primary-foreground" />
+              <Logo />
             </div>
             <span
               className={cn(
@@ -269,7 +270,7 @@ export default function AdminLayout({
             onClick={() => setSidebarOpen(false)}
           >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+              <Logo />
             </div>
             <span className="text-xl font-bold">MCQ Admin</span>
           </Link>

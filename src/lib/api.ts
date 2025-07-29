@@ -27,7 +27,6 @@ const fetcher = async (url: string, options?: RequestInit) => {
       errorMsg = await response.text();
     } catch {}
     if (errorMsg.includes("Invalid or expired token") && refreshToken) {
-      // Try refresh
       const formData = new FormData();
       formData.append("refresh_token", refreshToken);
       const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
@@ -49,7 +48,6 @@ const fetcher = async (url: string, options?: RequestInit) => {
           setTokens(refreshData.accessToken, refreshData.refreshToken);
           if (refreshData.user) setUser(refreshData.user);
         } catch {}
-        // Retry original request with new token
         response = await fetch(`${API_BASE_URL}${url}`, {
           ...options,
           headers: {
@@ -396,11 +394,13 @@ export const publicAPI = {
   },
 
   getQuestions: async (
-    data: apiTypes.GetQuestionsRequest
+    data: apiTypes.GetQuestionsRequest,
+    signal?: AbortSignal
   ): Promise<apiTypes.PublicQuestion[]> => {
     return fetcher("/question", {
       method: "POST",
       body: JSON.stringify(data),
+      signal,
     });
   },
 

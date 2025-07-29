@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { usePublicStore } from "@/store/usePublicStore";
 import { publicAPI } from "@/lib/api";
 import type * as apiTypes from "@/types/api";
@@ -14,6 +14,9 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
     useState<apiTypes.PublicQuestion | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Use ref to store the current abort controller
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Memoize API parameters to prevent unnecessary re-renders
   const apiParams = useMemo(
     () => ({
@@ -24,16 +27,41 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
   );
 
   const fetchQuestions = useCallback(
-    async (includeQuestionId?: number | null) => {
+    async (
+      includeQuestionId?: number | null,
+      excludeQuestionIds?: number[]
+    ) => {
+      // Abort previous request if still pending
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new abort controller for this request
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       setIsLoading(true);
       try {
         const params = {
           ...apiParams,
           ...(includeQuestionId && { includeQuestionId }),
+          ...(excludeQuestionIds && {
+            excludeQuestionIds: Array.from(
+              new Set([
+                ...excludeQuestionIds,
+                ...(apiParams.excludeQuestionIds ?? []),
+              ])
+            ),
+          }),
         };
 
         const questions: apiTypes.PublicQuestion[] =
-          await publicAPI.getQuestions(params);
+          await publicAPI.getQuestions(params, abortController.signal);
+
+        // Check if request was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
 
         setQuestionQueue(questions);
 
@@ -52,12 +80,20 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
 
         setCurrentQuestion(nextQuestion);
       } catch (error) {
+        // Don't handle error if request was aborted
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+
         console.error("Failed to fetch questions:", error);
         // Reset state on error to prevent stale data
         setQuestionQueue([]);
         setCurrentQuestion(null);
       } finally {
-        setIsLoading(false);
+        // Only update loading state if this request wasn't aborted
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     },
     [apiParams, hasInitialized]
@@ -66,7 +102,7 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
   const nextQuestion = useCallback(() => {
     if (!currentQuestion) return;
 
-    addAnsweredId(currentQuestion.id);
+    const updatedAnsweredIds = addAnsweredId(currentQuestion.id);
 
     const remainingQuestions = questionQueue.filter(
       (q) => q.id !== currentQuestion.id
@@ -77,7 +113,7 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
       setCurrentQuestion(remainingQuestions[0]);
     } else {
       // No more questions in queue, fetch new ones
-      fetchQuestions();
+      fetchQuestions(null, updatedAnsweredIds);
     }
   }, [currentQuestion, questionQueue, addAnsweredId, fetchQuestions]);
 
@@ -94,6 +130,15 @@ export function usePublicQuestion(initialQuestionId: number | null = null) {
     },
     [nextQuestion]
   );
+
+  // Cleanup function to abort any pending requests
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Initialize on mount
   useEffect(() => {

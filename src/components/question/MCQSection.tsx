@@ -58,7 +58,7 @@ const MCQSection = () => {
     <div className="max-w-3xl mx-auto">
       <Card className="mb-6 shadow-none">
         <CardHeader className="text-center bg-muted p-2 md:p-3 lg:p-4">
-          <CardTitle className="text-md font-bold text-left flex align-center gap-2 md:gap-4">
+          <CardTitle className="text-md font-bold text-left flex align-center gap-4">
             <LabeledSwitch
               label="All"
               size="small"

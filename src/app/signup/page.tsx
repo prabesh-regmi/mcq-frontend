@@ -1,17 +1,23 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff, BookOpen } from 'lucide-react'
-import { registerSchema, type RegisterFormData } from '@/lib/validations'
-import { authAPI } from '@/lib/api'
-import { useAuthStore } from '@/store/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, BookOpen } from "lucide-react";
+import { registerSchema, type RegisterFormData } from "@/lib/validations";
+import { authAPI } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,66 +25,67 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
+import Logo from "@/components/logo";
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { setUser, setTokens } = useAuthStore()
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { setUser, setTokens } = useAuthStore();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      phoneNumber: '',
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phoneNumber: "",
     },
-  })
+  });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       await authAPI.register({
         fullName: data.fullName,
         email: data.email,
         password: data.password,
         phoneNumber: data.phoneNumber,
-      })
-      
+      });
+
       // For registration, we need to login after successful registration
       const loginResponse = await authAPI.login({
         email: data.email,
         password: data.password,
-      })
-      
+      });
+
       // Store tokens
-      setTokens(loginResponse.accessToken, loginResponse.refreshToken)
-      setUser(loginResponse.user)
+      setTokens(loginResponse.accessToken, loginResponse.refreshToken);
+      setUser(loginResponse.user);
       // Store in localStorage for API calls
-      localStorage.setItem('accessToken', loginResponse.accessToken)
-      localStorage.setItem('refreshToken', loginResponse.refreshToken)
-      localStorage.setItem('user', JSON.stringify(loginResponse.user))
-      
+      localStorage.setItem("accessToken", loginResponse.accessToken);
+      localStorage.setItem("refreshToken", loginResponse.refreshToken);
+      localStorage.setItem("user", JSON.stringify(loginResponse.user));
+
       // Redirect based on role
-      if (loginResponse.user.role === 'admin') {
-        router.push('/admin/dashboard')
+      if (loginResponse.user.role === "admin") {
+        router.push("/admin/dashboard");
       } else {
-        router.push('/')
+        router.push("/");
       }
     } catch (error) {
-      console.error('Registration error:', error)
-      form.setError('root', {
-        type: 'manual',
-        message: 'Registration failed. Please try again.',
-      })
+      console.error("Registration error:", error);
+      form.setError("root", {
+        type: "manual",
+        message: "Registration failed. Please try again.",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen-dynamic flex items-center justify-center bg-background p-4">
@@ -86,10 +93,12 @@ export default function SignupPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-[var(--primary-foreground)]" />
+              <Logo />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
           <CardDescription>
             Enter your information to create your account
           </CardDescription>
@@ -104,10 +113,7 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your full name"
-                        {...field}
-                      />
+                      <Input placeholder="Enter your full name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,16 +145,13 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Phone Number (Optional)</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter your phone number"
-                        {...field}
-                      />
+                      <Input placeholder="Enter your phone number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
@@ -158,7 +161,7 @@ export default function SignupPage() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPassword ? 'text' : 'password'}
+                          type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
                           {...field}
                         />
@@ -191,7 +194,7 @@ export default function SignupPage() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showConfirmPassword ? 'text' : 'password'}
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="Confirm your password"
                           {...field}
                         />
@@ -200,7 +203,9 @@ export default function SignupPage() {
                           variant="ghost"
                           size="icon"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                         >
                           {showConfirmPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -226,12 +231,12 @@ export default function SignupPage() {
                 className="w-full bg-[var(--primary)] text-[var(--primary-foreground)]"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
 
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">
-                  Already have an account?{' '}
+                  Already have an account?{" "}
                   <Link
                     href="/login"
                     className="text-[var(--primary)] hover:underline"
@@ -245,5 +250,5 @@ export default function SignupPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

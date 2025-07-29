@@ -27,8 +27,8 @@ export default function CopyButton({
   };
 
   return (
-    <button onClick={handleCopy} {...props}>
+    <span onClick={handleCopy} {...props}>
       {children}
-    </button>
+    </span>
   );
 }

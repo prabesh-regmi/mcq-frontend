@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import Spinner from "@/components/ui/spinner";
+import Logo from "@/components/logo";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -115,7 +116,7 @@ export default function LoginPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-[var(--primary-foreground)]" />
+              <Logo />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>

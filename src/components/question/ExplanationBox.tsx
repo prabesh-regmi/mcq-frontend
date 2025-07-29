@@ -28,7 +28,7 @@ export const ExplanationBox: React.FC<AIExplanationBoxProps> = ({
           <AccordionTrigger className="text-left text-lg px-4 md:px-6 py-2 md:py-4 font-semibold hover:no-underline">
             Explanation
           </AccordionTrigger>
-          <AccordionContent className="p-0">
+          <AccordionContent className="p-4 lg:p-0">
             <CardContent className="p-0 flex items-start space-x-4">
               {isLoading && (
                 <Loader2 className="animate-spin text-blue-500 mt-1 shrink-0" />

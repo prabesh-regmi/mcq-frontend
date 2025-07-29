@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 interface PublicStore {
   answeredIds: number[];
   selectedSubjectIds: number[];
-  addAnsweredId: (id: number) => void;
+  addAnsweredId: (id: number) => number[];
   setSelectedSubjectIds: (ids: number[]) => void;
   reset: () => void;
 }
@@ -19,6 +19,7 @@ export const usePublicStore = create<PublicStore>()(
         if (!current.includes(id)) {
           set({ answeredIds: [...current, id] });
         }
+        return [...current, id];
       },
       setSelectedSubjectIds: (ids) => set({ selectedSubjectIds: ids }),
       reset: () => set({ answeredIds: [], selectedSubjectIds: [] }),
