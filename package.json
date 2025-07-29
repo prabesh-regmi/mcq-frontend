@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "export": "npx serve out"
+    "export": "npx serve out",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix --max-warnings=0"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -59,6 +65,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "typescript": "^5"
   }
 }
